@@ -137,7 +137,7 @@ func main() {
 			return nil
 		}
 		if b.Status == battery.Full {
-			out := outputs.Textf("B: 100%")
+			out := outputs.Text("B: 100%")
 			out.Color(colors.Scheme("good"))
 			return out
 		}
@@ -145,7 +145,7 @@ func main() {
 			b.RemainingPct(),
 			b.RemainingTime())
 		if b.Discharging() {
-			if b.RemainingPct() < 20 || b.RemainingTime() < 30*time.Minute {
+			if b.RemainingPct() < 20 {
 				out.Color(colors.Scheme("bad"))
 				return out
 			} else {
@@ -165,18 +165,18 @@ func main() {
 			out.Color(colors.Scheme("bad"))
 			return out
 		}
-		out := outputs.Textf("V:%03d", v.Pct())
+		out := outputs.Textf("V: %03d", v.Pct())
 		out.Color(colors.Scheme("good"))
 		return out
 	}))
 
 	barista.Add(meminfo.New().Output(func(i meminfo.Info) bar.Output {
 		if i.Available() < unit.Gigabyte {
-			return outputs.Textf(`MEMORY < %s`,
+			return outputs.Textf(`M: %s`,
 				format.IBytesize(i.Available())).
 				Color(colors.Scheme("bad"))
 		}
-		out := outputs.Textf(`%s/%s`,
+		out := outputs.Textf(`M: %s/%s`,
 			format.IBytesize(i["MemTotal"]-i.Available()),
 			format.IBytesize(i.Available()))
 		switch {
@@ -184,12 +184,14 @@ func main() {
 			out.Color(colors.Scheme("bad"))
 		case i.AvailFrac() < 0.33:
 			out.Color(colors.Scheme("degraded"))
+		default:
+			out.Color(colors.Scheme("good"))
 		}
 		return out
 	}))
 
 	barista.Add(sysinfo.New().Output(func(i sysinfo.Info) bar.Output {
-		out := outputs.Textf("%.2f", i.Loads[0])
+		out := outputs.Textf("C: %.2f", i.Loads[0])
 		if i.Loads[0] > 4.0 {
 			out.Color(colors.Scheme("bad"))
 		} else if i.Loads[0] > 2.0 {
