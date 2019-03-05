@@ -85,16 +85,14 @@ func main() {
 
 	barista.Add(cputemp.New().Output(func(t unit.Temperature) bar.Output {
 		tDecimal := int64(t.Celsius())
+		out := outputs.Textf("T: %dC", tDecimal)
 		if tDecimal >= 86 {
-			out := outputs.Textf("T: %dC", tDecimal)
 			out.Color(colors.Scheme("bad"))
 			return out
 		} else if tDecimal > 65 {
-			out := outputs.Textf("T: %dC", tDecimal)
 			out.Color(colors.Scheme("degraded"))
 			return out
 		} else {
-			out := outputs.Textf("T: %dC", tDecimal)
 			out.Color(colors.Scheme("good"))
 			return out
 		}
@@ -143,24 +141,18 @@ func main() {
 			out.Color(colors.Scheme("good"))
 			return out
 		}
+		out := outputs.Textf("B: %d%% %s",
+			b.RemainingPct(),
+			b.RemainingTime())
 		if b.Discharging() {
 			if b.RemainingPct() < 20 || b.RemainingTime() < 30*time.Minute {
-				out := outputs.Textf("B: %d%% %s",
-					b.RemainingPct(),
-					b.RemainingTime())
 				out.Color(colors.Scheme("bad"))
 				return out
 			} else {
-				out := outputs.Textf("B: %d%% %s",
-					b.RemainingPct(),
-					b.RemainingTime())
 				out.Color(colors.Scheme("degraded"))
 				return out
 			}
 		} else if b.PluggedIn() {
-			out := outputs.Textf("B: %d%% %s",
-				b.RemainingPct(),
-				b.RemainingTime())
 			out.Color(colors.Scheme("good"))
 			return out
 		}
@@ -198,8 +190,12 @@ func main() {
 
 	barista.Add(sysinfo.New().Output(func(i sysinfo.Info) bar.Output {
 		out := outputs.Textf("%.2f", i.Loads[0])
-		if i.Loads[0] > 5.0 {
+		if i.Loads[0] > 4.0 {
 			out.Color(colors.Scheme("bad"))
+		} else if i.Loads[0] > 2.0 {
+			out.Color(colors.Scheme("degraded"))
+		} else {
+			out.Color(colors.Scheme("good"))
 		}
 		return out
 	}))
