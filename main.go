@@ -18,7 +18,9 @@ package main
 import (
 	"barista.run/modules/clock"
 	"barista.run/modules/cputemp"
+	"barista.run/modules/diskio"
 	"barista.run/modules/funcs"
+	"barista.run/modules/netspeed"
 	"barista.run/modules/sysinfo"
 	"barista.run/modules/volume"
 	"fmt"
@@ -83,6 +85,11 @@ func main() {
 		return out
 	}))
 
+	barista.Add(diskio.New("dm-0").Output(func(i diskio.IO) bar.Output {
+		out := outputs.Textf("I: %s O: %s", format.IByterate(i.Input), format.IByterate(i.Output))
+		return out
+	}))
+
 	barista.Add(cputemp.New().Output(func(t unit.Temperature) bar.Output {
 		tDecimal := int64(t.Celsius())
 		out := outputs.Textf("T: %dC", tDecimal)
@@ -115,6 +122,10 @@ func main() {
 		}
 	}))
 
+	barista.Add(netspeed.New("wlp3s0").Output(func(s netspeed.Speeds) bar.Output {
+		return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
+	}))
+
 	barista.Add(netinfo.Prefix("e").Output(func(s netinfo.State) bar.Output {
 		switch {
 		case s.Connected():
@@ -132,6 +143,10 @@ func main() {
 		}
 	}))
 
+	barista.Add(netspeed.New("enp0s25").Output(func(s netspeed.Speeds) bar.Output {
+		return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
+	}))
+
 	barista.Add(battery.All().Output(func(b battery.Info) bar.Output {
 		if b.Status == battery.Disconnected {
 			return nil
@@ -144,17 +159,21 @@ func main() {
 		out := outputs.Textf("B: %d%% %s",
 			b.RemainingPct(),
 			b.RemainingTime())
+		if b.PluggedIn() {
+			out.Color(colors.Scheme("good"))
+			return out
+		}
 		if b.Discharging() {
 			if b.RemainingPct() < 20 {
 				out.Color(colors.Scheme("bad"))
 				return out
-			} else {
+			} else if b.RemainingPct() < 50 {
 				out.Color(colors.Scheme("degraded"))
 				return out
+			} else {
+				out.Color(colors.Scheme("good"))
+				return out
 			}
-		} else if b.PluggedIn() {
-			out.Color(colors.Scheme("good"))
-			return out
 		}
 		return nil
 	}))
