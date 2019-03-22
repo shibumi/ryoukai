@@ -23,6 +23,7 @@ import (
 	"barista.run/modules/netspeed"
 	"barista.run/modules/sysinfo"
 	"barista.run/modules/volume"
+	//"barista.run/samples/mpd"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -62,7 +63,7 @@ func main() {
 		"degraded": "#E6CD69",
 	})
 
-	barista.Add(funcs.Every(5*time.Second, func(s bar.Sink) {
+	barista.Add(funcs.Every(time.Second, func(s bar.Sink) {
 		out := outputs.Text("USB")
 		if usbDeny() {
 			out.Color(colors.Scheme("good"))
@@ -71,6 +72,11 @@ func main() {
 		}
 		s.Output(out)
 	}))
+
+	//barista.Add(mpd.New("").Output(func( i mpd.Info) bar.Output {
+	//	out := outputs.Textf("%s %s - %s", i.PlaybackStatusIcon, i.Artist, i.Title)
+	//	return out
+	//}))
 
 	barista.Add(diskspace.New("/").Output(func(i diskspace.Info) bar.Output {
 		out := outputs.Textf("D: " + format.IBytesize(i.Used()) + "/" + format.IBytesize(i.Total))
@@ -123,7 +129,10 @@ func main() {
 	}))
 
 	barista.Add(netspeed.New("wlp3s0").Output(func(s netspeed.Speeds) bar.Output {
-		return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
+		if s.Connected() {
+			return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
+		}
+		return nil
 	}))
 
 	barista.Add(netinfo.Prefix("e").Output(func(s netinfo.State) bar.Output {
@@ -144,7 +153,10 @@ func main() {
 	}))
 
 	barista.Add(netspeed.New("enp0s25").Output(func(s netspeed.Speeds) bar.Output {
-		return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
+		if s.Connected() {
+			return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
+		}
+		return nil
 	}))
 
 	barista.Add(battery.All().Output(func(b battery.Info) bar.Output {
@@ -197,7 +209,7 @@ func main() {
 		}
 		out := outputs.Textf(`M: %s/%s`,
 			format.IBytesize(i["MemTotal"]-i.Available()),
-			format.IBytesize(i.Available()))
+			format.IBytesize(i["MemTotal"]))
 		switch {
 		case i.AvailFrac() < 0.2:
 			out.Color(colors.Scheme("bad"))
