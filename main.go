@@ -23,6 +23,9 @@ import (
 	"barista.run/modules/netspeed"
 	"barista.run/modules/sysinfo"
 	"barista.run/modules/volume"
+	"log"
+	"os/exec"
+
 	//"barista.run/samples/mpd"
 	"fmt"
 	"io/ioutil"
@@ -178,6 +181,10 @@ func main() {
 		if b.Discharging() {
 			if b.RemainingPct() < 20 {
 				out.Color(colors.Scheme("bad"))
+				err := exec.Command("notify-send", "-t", "2000", "battery", "very low", "-u", "critical").Run()
+				if err != nil {
+					log.Fatal("Couldn't use notify-send command")
+				}
 				return out
 			} else if b.RemainingPct() < 50 {
 				out.Color(colors.Scheme("degraded"))
