@@ -68,6 +68,11 @@ func main() {
 	})
 
 	barista.Add(yubikey.New().Output(func(gpg bool, u2f bool) bar.Output {
+		if u2f {
+			out := outputs.Text("U2F")
+			out.Color(colors.Scheme("degraded"))
+			return out
+		}
 		if gpg {
 			out := outputs.Text("GPG")
 			out.Color(colors.Scheme("degraded"))
@@ -86,7 +91,7 @@ func main() {
 		s.Output(out)
 	}))
 
-	//barista.Add(mpd.New("").Output(func( i mpd.Info) bar.Output {
+	//barista.Add(mpd.New("127.0.0.1:6600").Output(func(i mpd.Info) bar.Output {
 	//	out := outputs.Textf("%s %s - %s", i.PlaybackStatusIcon, i.Artist, i.Title)
 	//	return out
 	//}))
