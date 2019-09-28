@@ -67,8 +67,8 @@ func main() {
 		"degraded": "#E6CD69",
 	})
 
-	barista.Add(yubikey.New().Output(func (u bool, g bool) bar.Output {
-		if u {
+	barista.Add(yubikey.New().Output(func(gpg bool, u2f bool) bar.Output {
+		if gpg {
 			out := outputs.Text("GPG")
 			out.Color(colors.Scheme("degraded"))
 			return out
