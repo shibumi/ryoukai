@@ -23,6 +23,7 @@ import (
 	"barista.run/modules/netspeed"
 	"barista.run/modules/sysinfo"
 	"barista.run/modules/volume"
+	"barista.run/samples/yubikey"
 	"log"
 	"os/exec"
 
@@ -65,6 +66,15 @@ func main() {
 		"bad":      "#CD3F45",
 		"degraded": "#E6CD69",
 	})
+
+	barista.Add(yubikey.New().Output(func (u bool, g bool) bar.Output {
+		if u {
+			out := outputs.Text("GPG")
+			out.Color(colors.Scheme("degraded"))
+			return out
+		}
+		return nil
+	}))
 
 	barista.Add(funcs.Every(time.Second, func(s bar.Sink) {
 		out := outputs.Text("USB")
