@@ -141,7 +141,7 @@ func main() {
 		}
 	}))
 
-	barista.Add(netspeed.New("wlp3s0").Output(func(s netspeed.Speeds) bar.Output {
+	barista.Add(netspeed.New("wlan0").Output(func(s netspeed.Speeds) bar.Output {
 		if s.Connected() {
 			return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
 		}
