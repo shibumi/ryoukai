@@ -45,6 +45,7 @@ import (
 	"barista.run/modules/wlan"
 	"barista.run/outputs"
 	"github.com/martinlindhe/unit"
+	"regexp"
 )
 
 func usbDeny() bool {
@@ -58,6 +59,21 @@ func usbDeny() bool {
 		return false
 	}
 	return out
+}
+
+func getYubikeyCounter() (output string, err error) {
+	cmd := exec.Command("gpg", "--card-status")
+	var stdout []byte
+	stdout, err = cmd.CombinedOutput()
+	if err != nil {
+		return output , err
+	}
+	match := regexp.MustCompile("Signature counter : (\\d+)").FindStringSubmatch(string(stdout))
+	if match != nil {
+		return match[1], nil
+	} else {
+		return "", fmt.Errorf("not matched")
+	}
 }
 
 func main() {
@@ -79,6 +95,15 @@ func main() {
 			return out
 		}
 		return nil
+	}))
+	
+	barista.Add(funcs.Every(time.Second * 5, func(s bar.Sink) {
+		if counter, err := getYubikeyCounter(); err == nil {
+			out := outputs.Textf("Y: %s", counter)
+			s.Output(out)
+		} else {
+			s.Output(nil)
+		}
 	}))
 
 	barista.Add(funcs.Every(time.Second, func(s bar.Sink) {
