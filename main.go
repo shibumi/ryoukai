@@ -23,6 +23,7 @@ import (
 	"barista.run/modules/netspeed"
 	"barista.run/modules/sysinfo"
 	"barista.run/modules/volume"
+	"barista.run/modules/volume/pulseaudio"
 	"barista.run/samples/yubikey"
 	"log"
 	"os/exec"
@@ -212,7 +213,7 @@ func main() {
 		return nil
 	}))
 
-	barista.Add(volume.DefaultSink().Output(func(v volume.Volume) bar.Output {
+	barista.Add(volume.New(pulseaudio.DefaultSink()).Output(func(v volume.Volume) bar.Output {
 		if v.Mute {
 			out := outputs.Textf("V: %03d", v.Pct())
 			out.Color(colors.Scheme("bad"))
