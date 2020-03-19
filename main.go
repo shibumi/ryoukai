@@ -16,6 +16,7 @@
 package main
 
 import (
+	"barista.run/base/watchers/netlink"
 	"barista.run/modules/clock"
 	"barista.run/modules/cputemp"
 	"barista.run/modules/diskio"
@@ -97,7 +98,7 @@ func main() {
 	barista.Add(netinfo.Prefix("wg").Output(func(s netinfo.State) bar.Output {
 		switch {
 		// we are using the unknown state for now. Until barista supports s.Unknown
-		case s.State == 0:
+		case s.State == netlink.Unknown:
 			return outputs.Textf("%s", s.Name).Color(colors.Scheme("good"))
 		default:
 			return outputs.Textf("%s", s.Name).Color(colors.Scheme("bad"))
