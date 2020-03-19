@@ -19,7 +19,6 @@ import (
 	"barista.run/modules/clock"
 	"barista.run/modules/cputemp"
 	"barista.run/modules/diskio"
-	"barista.run/modules/funcs"
 	"barista.run/modules/netspeed"
 	"barista.run/modules/sysinfo"
 	"barista.run/modules/volume"
@@ -27,13 +26,6 @@ import (
 	"barista.run/samples/yubikey"
 	"log"
 	"os/exec"
-
-	//"barista.run/samples/mpd"
-	"fmt"
-	"io/ioutil"
-	"strconv"
-	"strings"
-	"time"
 
 	"barista.run"
 	"barista.run/bar"
@@ -45,7 +37,12 @@ import (
 	"barista.run/modules/netinfo"
 	"barista.run/modules/wlan"
 	"barista.run/outputs"
+	//"barista.run/samples/mpd"
+	"fmt"
 	"github.com/martinlindhe/unit"
+	"io/ioutil"
+	"strconv"
+	"strings"
 )
 
 func usbDeny() bool {
@@ -82,20 +79,30 @@ func main() {
 		return nil
 	}))
 
-	barista.Add(funcs.Every(time.Second, func(s bar.Sink) {
-		out := outputs.Text("USB")
-		if usbDeny() {
-			out.Color(colors.Scheme("good"))
-		} else {
-			out.Color(colors.Scheme("bad"))
-		}
-		s.Output(out)
-	}))
+	//barista.Add(funcs.Every(time.Second, func(s bar.Sink) {
+	//	out := outputs.Text("USB")
+	//	if usbDeny() {
+	//		out.Color(colors.Scheme("good"))
+	//	} else {
+	//		out.Color(colors.Scheme("bad"))
+	//	}
+	//	s.Output(out)
+	//}))
 
 	//barista.Add(mpd.New("127.0.0.1:6600").Output(func(i mpd.Info) bar.Output {
 	//	out := outputs.Textf("%s %s - %s", i.PlaybackStatusIcon, i.Artist, i.Title)
 	//	return out
 	//}))
+
+	barista.Add(netinfo.Prefix("wg").Output(func(s netinfo.State) bar.Output {
+		switch {
+		// we are using the unknown state for now. Until barista supports s.Unknown
+		case s.State == 0:
+			return outputs.Textf("%s", s.Name).Color(colors.Scheme("good"))
+		default:
+			return outputs.Textf("%s", s.Name).Color(colors.Scheme("bad"))
+		}
+	}))
 
 	barista.Add(diskspace.New("/").Output(func(i diskspace.Info) bar.Output {
 		out := outputs.Textf("D: " + format.IBytesize(i.Used()) + "/" + format.IBytesize(i.Total))
