@@ -59,9 +59,9 @@ func main() {
 	barista.Add(wlan.Any().Output(func(w wlan.Info) bar.Output {
 		switch {
 		case w.Connected():
-			out := fmt.Sprintf("W: (%s)", w.SSID)
+			var out string
 			if len(w.IPs) > 0 {
-				out += fmt.Sprintf(" %s", w.IPs[0])
+				out = fmt.Sprintf("W: %s", w.IPs[0])
 			}
 			return outputs.Text(out).Color(colors.Scheme("good"))
 		case w.Connecting():
