@@ -107,7 +107,7 @@ func main() {
 			return out
 		}
 		if b.Discharging() {
-			if b.RemainingPct() < 20 {
+			if b.RemainingPct() < 5 {
 				out.Color(colors.Scheme("bad"))
 				err := exec.Command("notify-send", "-t", "2000", "battery", "very low", "-u", "critical").Run()
 				if err != nil {
