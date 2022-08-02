@@ -16,31 +16,21 @@
 package main
 
 import (
-	"barista.run/base/watchers/netlink"
 	"barista.run/modules/clock"
-	"barista.run/modules/cputemp"
-	"barista.run/modules/diskio"
-	"barista.run/modules/netspeed"
-	"barista.run/modules/sysinfo"
+
 	"barista.run/modules/volume"
-	"barista.run/modules/volume/pulseaudio"
-	"barista.run/samples/yubikey"
+	"barista.run/modules/volume/alsa"
 	"log"
 	"os/exec"
 
 	"barista.run"
 	"barista.run/bar"
 	"barista.run/colors"
-	"barista.run/format"
 	"barista.run/modules/battery"
-	"barista.run/modules/diskspace"
-	"barista.run/modules/meminfo"
 	"barista.run/modules/netinfo"
 	"barista.run/modules/wlan"
 	"barista.run/outputs"
-	//"barista.run/samples/mpd"
 	"fmt"
-	"github.com/martinlindhe/unit"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -66,78 +56,6 @@ func main() {
 		"degraded": "#E6CD69",
 	})
 
-	barista.Add(yubikey.New().Output(func(gpg bool, u2f bool) bar.Output {
-		if u2f {
-			out := outputs.Text("U2F")
-			out.Color(colors.Scheme("degraded"))
-			return out
-		}
-		if gpg {
-			out := outputs.Text("GPG")
-			out.Color(colors.Scheme("degraded"))
-			return out
-		}
-		return nil
-	}))
-
-	//barista.Add(funcs.Every(time.Second, func(s bar.Sink) {
-	//	out := outputs.Text("USB")
-	//	if usbDeny() {
-	//		out.Color(colors.Scheme("good"))
-	//	} else {
-	//		out.Color(colors.Scheme("bad"))
-	//	}
-	//	s.Output(out)
-	//}))
-
-	//barista.Add(mpd.New("127.0.0.1:6600").Output(func(i mpd.Info) bar.Output {
-	//	out := outputs.Textf("%s %s - %s", i.PlaybackStatusIcon, i.Artist, i.Title)
-	//	return out
-	//}))
-
-	barista.Add(netinfo.Prefix("wg").Output(func(s netinfo.State) bar.Output {
-		switch {
-		// we are using the unknown state for now. Until barista supports s.Unknown
-		case s.State == netlink.Unknown:
-			return outputs.Textf("%s", s.Name).Color(colors.Scheme("good"))
-		default:
-			return outputs.Textf("%s", s.Name).Color(colors.Scheme("bad"))
-		}
-	}))
-
-	barista.Add(diskspace.New("/").Output(func(i diskspace.Info) bar.Output {
-		out := outputs.Textf("D: " + format.IBytesize(i.Used()) + "/" + format.IBytesize(i.Total))
-		switch {
-		case i.AvailFrac() < 0.1:
-			out.Color(colors.Scheme("bad"))
-		case i.AvailFrac() < 0.3:
-			out.Color(colors.Scheme("degraded"))
-		default:
-			out.Color(colors.Scheme("good"))
-		}
-		return out
-	}))
-
-	barista.Add(diskio.New("dm-0").Output(func(i diskio.IO) bar.Output {
-		out := outputs.Textf("I: %s O: %s", format.IByterate(i.Input), format.IByterate(i.Output))
-		return out
-	}))
-
-	barista.Add(cputemp.New().Output(func(t unit.Temperature) bar.Output {
-		tDecimal := int64(t.Celsius())
-		out := outputs.Textf("T: %dC", tDecimal)
-		if tDecimal >= 86 {
-			out.Color(colors.Scheme("bad"))
-			return out
-		} else if tDecimal > 65 {
-			out.Color(colors.Scheme("degraded"))
-			return out
-		} else {
-			out.Color(colors.Scheme("good"))
-			return out
-		}
-	}))
-
 	barista.Add(wlan.Any().Output(func(w wlan.Info) bar.Output {
 		switch {
 		case w.Connected():
@@ -155,13 +73,6 @@ func main() {
 		}
 	}))
 
-	barista.Add(netspeed.New("wlan0").Output(func(s netspeed.Speeds) bar.Output {
-		if s.Connected() {
-			return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
-		}
-		return nil
-	}))
-
 	barista.Add(netinfo.Prefix("e").Output(func(s netinfo.State) bar.Output {
 		switch {
 		case s.Connected():
@@ -177,13 +88,6 @@ func main() {
 		default:
 			return nil
 		}
-	}))
-
-	barista.Add(netspeed.New("enp0s25").Output(func(s netspeed.Speeds) bar.Output {
-		if s.Connected() {
-			return outputs.Textf("Rx: %s Tx: %s", format.IByterate(s.Rx), format.IByterate(s.Tx))
-		}
-		return nil
 	}))
 
 	barista.Add(battery.All().Output(func(b battery.Info) bar.Output {
@@ -221,7 +125,7 @@ func main() {
 		return nil
 	}))
 
-	barista.Add(volume.New(pulseaudio.DefaultSink()).Output(func(v volume.Volume) bar.Output {
+	barista.Add(volume.New(alsa.DefaultMixer()).Output(func(v volume.Volume) bar.Output {
 		if v.Mute {
 			out := outputs.Textf("V: %03d", v.Pct())
 			out.Color(colors.Scheme("bad"))
@@ -229,38 +133,6 @@ func main() {
 		}
 		out := outputs.Textf("V: %03d", v.Pct())
 		out.Color(colors.Scheme("good"))
-		return out
-	}))
-
-	barista.Add(meminfo.New().Output(func(i meminfo.Info) bar.Output {
-		if i.Available() < unit.Gigabyte {
-			return outputs.Textf(`M: %s`,
-				format.IBytesize(i.Available())).
-				Color(colors.Scheme("bad"))
-		}
-		out := outputs.Textf(`M: %s/%s`,
-			format.IBytesize(i["MemTotal"]-i.Available()),
-			format.IBytesize(i["MemTotal"]))
-		switch {
-		case i.AvailFrac() < 0.2:
-			out.Color(colors.Scheme("bad"))
-		case i.AvailFrac() < 0.33:
-			out.Color(colors.Scheme("degraded"))
-		default:
-			out.Color(colors.Scheme("good"))
-		}
-		return out
-	}))
-
-	barista.Add(sysinfo.New().Output(func(i sysinfo.Info) bar.Output {
-		out := outputs.Textf("C: %.2f", i.Loads[0])
-		if i.Loads[0] > 4.0 {
-			out.Color(colors.Scheme("bad"))
-		} else if i.Loads[0] > 2.0 {
-			out.Color(colors.Scheme("degraded"))
-		} else {
-			out.Color(colors.Scheme("good"))
-		}
 		return out
 	}))
 
