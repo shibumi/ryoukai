@@ -114,7 +114,7 @@ func main() {
 					log.Fatal("Couldn't use notify-send command")
 				}
 				return out
-			} else if b.RemainingPct() < 50 {
+			} else if b.RemainingPct() < 20 {
 				out.Color(colors.Scheme("degraded"))
 				return out
 			} else {
