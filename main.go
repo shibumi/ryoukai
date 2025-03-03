@@ -109,9 +109,9 @@ func main() {
 		if b.Discharging() {
 			if b.RemainingPct() < 5 {
 				out.Color(colors.Scheme("bad"))
-				err := exec.Command("notify-send", "-t", "2000", "battery", "very low", "-u", "critical").Run()
+				err := exec.Command("fyi", "-t", "2000", "battery", "very low", "-u", "critical").Run()
 				if err != nil {
-					log.Fatal("Couldn't use notify-send command")
+					log.Fatal("Couldn't use fyi command")
 				}
 				return out
 			} else if b.RemainingPct() < 20 {
