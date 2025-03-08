@@ -31,23 +31,7 @@ import (
 	"github.com/shibumi/barista/modules/wlan"
 	"github.com/shibumi/barista/outputs"
 	"fmt"
-	"io/ioutil"
-	"strconv"
-	"strings"
 )
-
-func usbDeny() bool {
-	data, err := ioutil.ReadFile("/proc/sys/kernel/deny_new_usb")
-	if err != nil {
-		return false
-	}
-	dataString := strings.Split(string(data), "\n")
-	out, err := strconv.ParseBool(dataString[0])
-	if err != nil {
-		return false
-	}
-	return out
-}
 
 func main() {
 	colors.LoadFromMap(map[string]string{
