@@ -16,20 +16,20 @@
 package main
 
 import (
-	"barista.run/modules/clock"
+	"github.com/shibumi/barista/modules/clock"
 
-	"barista.run/modules/volume"
-	"barista.run/modules/volume/alsa"
+	"github.com/shibumi/barista/modules/volume"
+	"github.com/shibumi/barista/modules/volume/alsa"
 	"log"
 	"os/exec"
 
-	"barista.run"
-	"barista.run/bar"
-	"barista.run/colors"
-	"barista.run/modules/battery"
-	"barista.run/modules/netinfo"
-	"barista.run/modules/wlan"
-	"barista.run/outputs"
+	"github.com/shibumi/barista"
+	"github.com/shibumi/barista/bar"
+	"github.com/shibumi/barista/colors"
+	"github.com/shibumi/barista/modules/battery"
+	"github.com/shibumi/barista/modules/netinfo"
+	"github.com/shibumi/barista/modules/wlan"
+	"github.com/shibumi/barista/outputs"
 	"fmt"
 	"io/ioutil"
 	"strconv"
