@@ -127,11 +127,11 @@ func main() {
 
 	barista.Add(volume.New(alsa.DefaultMixer()).Output(func(v volume.Volume) bar.Output {
 		if v.Mute {
-			out := outputs.Textf("V: %d", v.Vol)
+			out := outputs.Textf("V: %d%%", v.Pct())
 			out.Color(colors.Scheme("bad"))
 			return out
 		}
-		out := outputs.Textf("V: %d", v.Vol)
+		out := outputs.Textf("V: %d%%", v.Pct())
 		out.Color(colors.Scheme("good"))
 		return out
 	}))
